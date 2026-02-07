@@ -27,11 +27,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.accesibilidadapp.R
 import com.example.accesibilidadapp.data.UserRepository
+import com.example.accesibilidadapp.domain.usecase.InvalidUserException
+import com.example.accesibilidadapp.domain.usecase.ValidateUserUseCase
 import com.example.accesibilidadapp.ui.components.AppOutlinedTextField
 import com.example.accesibilidadapp.ui.components.SocialCircle
 import com.example.accesibilidadapp.ui.theme.BackgroundLigth
 import com.example.accesibilidadapp.ui.theme.TextDark
 import com.example.accesibilidadapp.ui.theme.TextMuted
+import com.example.accesibilidadapp.util.safeRun
 
 @Preview(showBackground = true)
 @Composable
@@ -215,12 +218,30 @@ fun LoginScreen(
 
                     Button(
                         onClick = {
-                            val ok = UserRepository.validateLogin(email, password)
+                            val result = safeRun(
+                                onError = { exception ->
+                                    loginError = when (exception) {
+                                        is InvalidUserException -> exception.message
+                                        else -> "Error inesperado: " + exception.message
+                                    }
+                                    false
+                                }
+                            ) {
+                                val validator = ValidateUserUseCase()
+                                validator.validateEmail(email)
+                                validator.validatePassword(password)
+                                
+                                val ok = UserRepository.validateLogin(email, password)
+                                
+                                if (!ok) {
+                                    throw InvalidUserException(message = "Email o contraseña incorrectos")
+                                }
+                                
+                                true
+                            }
 
-                            if (ok) {
+                            if (result) {
                                 loginError = null
-                            } else {
-                                loginError = "❌ Email o contraseña incorrectos"
                             }
                         },
                         modifier = Modifier
