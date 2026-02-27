@@ -6,8 +6,8 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * Pruebas unitarias para [HomeSpeechController].
- * Verifican el comportamiento del botón "Presionar y hablar" en HomeScreen.
+ * Pruebas unitarias para HomeScreen.
+ * Verifican el comportamiento del botón "Presionar y hablar".
  */
 class HomeSpeechControllerTest {
 
@@ -19,8 +19,7 @@ class HomeSpeechControllerTest {
     }
 
     /**
-     * Prueba 1: Al recibir un error de "sin coincidencia" (ERROR_NO_MATCH),
-     * el mensaje de estado debe actualizarse correctamente y dejar de escuchar.
+     * Prueba 1: Al recibir un error, el mensaje de estado debe actualizarse correctamente y dejar de escuchar.
      */
     @Test
     fun `cuando ocurre ERROR_NO_MATCH el mensaje indica que no se entendio`() {
@@ -42,8 +41,7 @@ class HomeSpeechControllerTest {
     }
 
     /**
-     * Prueba 2: Al recibir resultados de voz, el texto reconocido se almacena
-     * y el estado vuelve al mensaje inicial.
+     * Prueba 2: Al recibir resultados de voz, el texto se almacena y el estado vuelve al mensaje inicial.
      */
     @Test
     fun `cuando se reciben resultados el texto reconocido se actualiza y el estado se resetea`() {
