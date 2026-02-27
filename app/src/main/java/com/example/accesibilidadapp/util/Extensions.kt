@@ -31,10 +31,9 @@ fun User.getDescription(): String {
 }
 
 fun String.isValidEmail(): Boolean {
-    val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
-    return this.matches(emailRegex)
+    return android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
 }
 
 fun String.isStrongPassword(): Boolean {
-    return this.length >= 4
+    return this.length >= 6
 }

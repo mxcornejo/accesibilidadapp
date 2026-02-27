@@ -21,10 +21,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.accesibilidadapp.R
+import com.example.accesibilidadapp.data.AuthRepository
 import com.example.accesibilidadapp.ui.components.AppOutlinedTextField
 import com.example.accesibilidadapp.ui.theme.BackgroundLigth
 import com.example.accesibilidadapp.ui.theme.TextDark
 import com.example.accesibilidadapp.ui.theme.TextMuted
+import kotlinx.coroutines.launch
 
 @Preview(showBackground = true)
 @Composable
@@ -38,6 +40,10 @@ fun RecoverPasswordScreen(
     onBackToLoginClick: () -> Unit = {}
 ) {
     var email by rememberSaveable { mutableStateOf("") }
+    var successMessage by remember { mutableStateOf<String?>(null) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     val pink = Color(0xFFE91E63)
     val canSend = email.isNotBlank()
@@ -128,8 +134,22 @@ fun RecoverPasswordScreen(
                     Spacer(modifier = Modifier.height(18.dp))
 
                     Button(
-                        onClick = { onSendClick(email) },
-                        enabled = canSend,
+                        onClick = {
+                            scope.launch {
+                                isLoading = true
+                                errorMessage = null
+                                successMessage = null
+                                try {
+                                    AuthRepository.sendPasswordReset(email)
+                                    successMessage = "Correo enviado. Revisa tu bandeja de entrada."
+                                    isLoading = false
+                                } catch (e: Exception) {
+                                    errorMessage = e.message ?: "Error al enviar el correo"
+                                    isLoading = false
+                                }
+                            }
+                        },
+                        enabled = canSend && !isLoading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(54.dp),
@@ -139,10 +159,36 @@ fun RecoverPasswordScreen(
                             disabledContainerColor = pink.copy(alpha = 0.35f)
                         )
                     ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        } else {
+                            Text(
+                                text = "Enviar correo",
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    if (successMessage != null) {
                         Text(
-                            text = "Enviar correo",
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            text = successMessage!!,
+                            color = Color(0xFF2E7D32),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    if (errorMessage != null) {
+                        Text(
+                            text = errorMessage!!,
+                            color = Color.Red,
+                            fontWeight = FontWeight.Bold
                         )
                     }
 

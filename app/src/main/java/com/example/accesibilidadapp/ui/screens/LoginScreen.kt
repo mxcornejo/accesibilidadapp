@@ -26,7 +26,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.accesibilidadapp.R
-import com.example.accesibilidadapp.data.UserRepository
+import com.example.accesibilidadapp.data.AuthRepository
 import com.example.accesibilidadapp.domain.usecase.InvalidUserException
 import com.example.accesibilidadapp.domain.usecase.ValidateUserUseCase
 import com.example.accesibilidadapp.ui.components.AppOutlinedTextField
@@ -34,7 +34,7 @@ import com.example.accesibilidadapp.ui.components.SocialCircle
 import com.example.accesibilidadapp.ui.theme.BackgroundLigth
 import com.example.accesibilidadapp.ui.theme.TextDark
 import com.example.accesibilidadapp.ui.theme.TextMuted
-import com.example.accesibilidadapp.util.safeRun
+import kotlinx.coroutines.launch
 
 @Preview(showBackground = true)
 @Composable
@@ -53,6 +53,8 @@ fun LoginScreen(
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     var loginError by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     val pink = Color(0xFFE91E63)
 
@@ -219,44 +221,46 @@ fun LoginScreen(
 
                     Button(
                         onClick = {
-                            val result = safeRun(
-                                onError = { exception ->
-                                    loginError = when (exception) {
-                                        is InvalidUserException -> exception.message
-                                        else -> "Error inesperado: " + exception.message
-                                    }
-                                    false
-                                }
-                            ) {
-                                val validator = ValidateUserUseCase()
-                                validator.validateEmail(email)
-                                validator.validatePassword(password)
-                                
-                                val ok = UserRepository.validateLogin(email, password)
-                                
-                                if (!ok) {
-                                    throw InvalidUserException(message = "Email o contraseña incorrectos")
-                                }
-                                
-                                true
-                            }
+                            scope.launch {
+                                try {
+                                    val validator = ValidateUserUseCase()
+                                    validator.validateEmail(email)
+                                    validator.validatePassword(password)
 
-                            if (result) {
-                                loginError = null
-                                onLoginSuccess()
+                                    isLoading = true
+                                    AuthRepository.login(email, password)
+                                    loginError = null
+                                    isLoading = false
+                                    onLoginSuccess()
+                                } catch (e: InvalidUserException) {
+                                    loginError = e.message
+                                    isLoading = false
+                                } catch (e: Exception) {
+                                    loginError = e.message ?: "Error inesperado"
+                                    isLoading = false
+                                }
                             }
                         },
+                        enabled = !isLoading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(54.dp),
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = pink)
                     ) {
-                        Text(
-                            text = "Iniciar sesión",
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        } else {
+                            Text(
+                                text = "Iniciar sesión",
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))

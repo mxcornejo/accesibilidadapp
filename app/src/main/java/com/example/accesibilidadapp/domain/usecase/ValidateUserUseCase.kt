@@ -24,7 +24,7 @@ class ValidateUserUseCase {
         }
         
         if (!password.isStrongPassword()) {
-            throw InvalidUserException(message = "La contraseña debe tener al menos 4 caracteres")
+            throw InvalidUserException(message = "La contraseña debe tener al menos 6 caracteres")
         }
     }
 

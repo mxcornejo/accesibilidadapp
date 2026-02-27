@@ -1,9 +1,12 @@
 package com.example.accesibilidadapp.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.accesibilidadapp.data.AuthRepository
+import kotlinx.coroutines.flow.first
 import com.example.accesibilidadapp.ui.screens.HomeScreen
 import com.example.accesibilidadapp.ui.screens.LoginScreen
 import com.example.accesibilidadapp.ui.screens.RecoverPasswordScreen
@@ -26,6 +29,15 @@ fun NavGraph(navController: NavHostController) {
     ) {
 
         composable(Screen.Splash.route) {
+            // Espera a que Firebase restaure la sesión y navega automáticamente
+            LaunchedEffect(Unit) {
+                val user = AuthRepository.currentUserFlow.first()
+                if (user != null) {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            }
             SplashScreen(
                 onStartClick = {
                     navController.navigate(Screen.Login.route) {
@@ -77,6 +89,7 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.Home.route) {
             HomeScreen(
                 onLogoutClick = {
+                    AuthRepository.logout()
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }

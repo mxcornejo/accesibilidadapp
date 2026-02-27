@@ -25,13 +25,14 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.accesibilidadapp.R
-import com.example.accesibilidadapp.data.UserRepository
-import com.example.accesibilidadapp.model.User
+import com.example.accesibilidadapp.data.AuthRepository
+import com.example.accesibilidadapp.data.FirestoreUserRepository
 import com.example.accesibilidadapp.ui.components.AppOutlinedTextField
 import com.example.accesibilidadapp.ui.theme.BackgroundLigth
 import com.example.accesibilidadapp.ui.theme.BrandOrange
 import com.example.accesibilidadapp.ui.theme.TextDark
 import com.example.accesibilidadapp.ui.theme.TextMuted
+import kotlinx.coroutines.launch
 
 @Preview(showBackground = true)
 @Composable
@@ -60,6 +61,8 @@ fun RegisterScreen(
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     val canSubmit = rut.isNotBlank() &&
             nombre.isNotBlank() &&
@@ -297,28 +300,36 @@ fun RegisterScreen(
 
                     Button(
                         onClick = {
-                            val newUser = User(
-                                name = "$nombre $apellidoPaterno $apellidoMaterno",
-                                email = email,
-                                password = password,
-                                disabilityType = "N/A",
-                                highContrastMode = false,
-                                acceptTerms = agree,
-                                receiveNotifications = false
-                            )
-
-                            val added = UserRepository.addUser(newUser)
-
-                            if (added) {
-                                successMessage = "Usuario registrado correctamente"
-                                errorMessage = null
-                                onRegisterSubmit()
-                            } else {
-                                errorMessage = "Este correo ya está registrado"
-                                successMessage = null
+                            scope.launch {
+                                isLoading = true
+                                try {
+                                    val user = AuthRepository.register(email, password)
+                                    FirestoreUserRepository.saveUserProfile(
+                                        uid = user.uid,
+                                        data = mapOf(
+                                            "rut" to rut,
+                                            "nombre" to nombre,
+                                            "apellidoPaterno" to apellidoPaterno,
+                                            "apellidoMaterno" to apellidoMaterno,
+                                            "region" to region,
+                                            "comuna" to comuna,
+                                            "telefono" to telefono,
+                                            "email" to email,
+                                            "acceptTerms" to agree
+                                        )
+                                    )
+                                    successMessage = "Usuario registrado correctamente"
+                                    errorMessage = null
+                                    isLoading = false
+                                    onRegisterSubmit()
+                                } catch (e: Exception) {
+                                    errorMessage = e.message ?: "Error al registrar"
+                                    successMessage = null
+                                    isLoading = false
+                                }
                             }
                         },
-                        enabled = canSubmit,
+                        enabled = canSubmit && !isLoading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(54.dp),
@@ -328,11 +339,19 @@ fun RegisterScreen(
                             disabledContainerColor = Color(0xFFE91E63).copy(alpha = 0.35f)
                         )
                     ) {
-                        Text(
-                            text = "Registrarse",
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        } else {
+                            Text(
+                                text = "Registrarse",
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
