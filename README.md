@@ -17,13 +17,11 @@ La aplicación se organiza en los siguientes paquetes:
   - **components**: componentes personalizados reutilizables.
   - **theme**: configuración de colores, tipografía y tema.
 
-Esta separación permite mantener un código ordenado, escalable y fácil de mantener.
-
 ---
 
 ## Funcionalidades y conceptos aplicados
 
-A continuación se detallan los **9 conceptos trabajados en la asignatura** y el lugar específico donde se aplican dentro del proyecto:
+A continuación se detallan los conceptos trabajados en la asignatura y el lugar específico donde se aplican dentro del proyecto:
 
 ---
 

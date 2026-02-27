@@ -44,6 +44,7 @@ fun LoginScreenPreview() {
 
 @Composable
 fun LoginScreen(
+    onLoginSuccess: () -> Unit = {},
     onRegisterClick: () -> Unit = {},
     onRecoverClick: () -> Unit = {}
 ) {
@@ -242,6 +243,7 @@ fun LoginScreen(
 
                             if (result) {
                                 loginError = null
+                                onLoginSuccess()
                             }
                         },
                         modifier = Modifier

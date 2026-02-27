@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.accesibilidadapp.ui.screens.HomeScreen
 import com.example.accesibilidadapp.ui.screens.LoginScreen
 import com.example.accesibilidadapp.ui.screens.RecoverPasswordScreen
 import com.example.accesibilidadapp.ui.screens.RegisterScreen
@@ -14,6 +15,7 @@ sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Register : Screen("register")
     object Recover : Screen("recover")
+    object Home : Screen("home")
 }
 
 @Composable
@@ -35,6 +37,11 @@ fun NavGraph(navController: NavHostController) {
 
         composable(Screen.Login.route) {
             LoginScreen(
+                onLoginSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
                 onRegisterClick = { navController.navigate(Screen.Register.route) },
                 onRecoverClick = { navController.navigate(Screen.Recover.route) }
             )
@@ -62,6 +69,16 @@ fun NavGraph(navController: NavHostController) {
                 onBackToLoginClick = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Recover.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Home.route) {
+            HomeScreen(
+                onLogoutClick = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
                     }
                 }
             )

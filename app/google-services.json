@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "748712057197",
+    "project_id": "accesibilityapp-da04b",
+    "storage_bucket": "accesibilityapp-da04b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:748712057197:android:747adf36274cecfdfbe264",
+        "android_client_info": {
+          "package_name": "com.example.accesibilidadapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5fCXcKEnRgsZYfIMuoeTvtJAV_gklP6M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
