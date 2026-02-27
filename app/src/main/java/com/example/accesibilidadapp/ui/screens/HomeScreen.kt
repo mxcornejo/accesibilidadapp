@@ -24,8 +24,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.example.accesibilidadapp.LocationHelper
 import com.example.accesibilidadapp.ui.theme.BackgroundLigth
 import com.example.accesibilidadapp.ui.theme.TextDark
+import kotlinx.coroutines.launch
 
 @Preview(showBackground = true)
 @Composable
@@ -42,6 +44,28 @@ fun HomeScreen(
     var recognizedText by remember { mutableStateOf("") }
     var isListening by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf("Presiona el botón para hablar") }
+
+    val locationHelper = remember { LocationHelper(context) }
+    val scope = rememberCoroutineScope()
+    var city by remember { mutableStateOf("Obteniendo ubicación...") }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            scope.launch { city = locationHelper.getCity() }
+        } else {
+            city = "Permiso de ubicación denegado"
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (locationHelper.hasLocationPermission()) {
+            city = locationHelper.getCity()
+        } else {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -138,7 +162,25 @@ fun HomeScreen(
                 color = TextDark
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Tu ubicación actual es: $city",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = TextDark
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = { if (!isListening) startListening() },
